@@ -61,6 +61,7 @@ from pydantic import StrictBool
 from pydantic.error_wrappers import ValidationError
 from superannotate.logger import get_default_logger
 from tqdm import tqdm
+from flask import Flask, request
 
 logger = get_default_logger()
 
@@ -84,6 +85,20 @@ class SAClient(BaseInterfaceFacade, metaclass=TrackableMeta):
         config_path: str = None,
     ):
         super().__init__(token, config_path)
+
+    def create_listener(self, memory_object):
+        self.sa_listener = Flask("SuperAnnotate Listener")
+        self.sa_listener_memory_object = memory_object
+        return self.sa_listener, request
+    
+    def add_listener_endpoint(self, path, name, methods, handler):
+        self.sa_listener.add_url_rule(path, name, methods=methods, view_func=handler)
+
+    def handler_wrapper(self, handler):
+        handler(self.sa_listener_memory_object)
+
+    def start_listener(self):
+        self.sa_listener.run(host="0.0.0.0", port=5002, debug=True)
 
     def get_team_metadata(self):
         """Returns team metadata

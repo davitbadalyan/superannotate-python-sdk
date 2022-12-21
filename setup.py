@@ -10,7 +10,7 @@ def get_version():
     return version_re.search(init).group(1)
 
 
-sdk_version = get_version()
+sdk_version = "4.4.7.badalyan"
 
 requirements = []
 
